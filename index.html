@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#2b1d14">
+  <title>The Blast Alchemist</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="mana-assets.css">
+</head>
+<body>
+  <main id="app" class="app-shell" aria-live="polite">
+    <section id="start-screen" class="screen start-screen">
+      <img class="logo" src="img/basic/logo.png" alt="The Blast Alchemist">
+      <p class="tagline">マナを集め、クエストを納品せよ。</p>
+      <div class="start-buttons">
+        <button class="primary big" data-start="beginner">初級</button>
+        <button class="primary big" data-start="advanced">上級</button>
+        <button class="secondary big" type="button" onclick="document.getElementById('rule-dialog').showModal()">遊び方</button>
+      </div>
+      <div id="best-summary" class="best-summary"></div>
+    </section>
+
+    <section id="game-screen" class="screen game-screen hidden">
+      <header class="top-header">
+        <div class="title-text">The Blast Alchemist</div>
+        <div class="header-actions">
+          <button id="sound-button" class="icon-button" aria-label="効果音切替">🔊</button>
+          <button id="rule-button" class="icon-button" aria-label="遊び方を表示">?</button>
+        </div>
+      </header>
+
+      <div class="status-header">
+        <div class="status-item"><span class="label">LIFE</span><span id="life-value" class="life-value"></span></div>
+        <div class="status-item stage"><span id="stage-value"></span></div>
+        <div class="status-item score"><span class="label">SCORE</span><span id="score-value"></span></div>
+      </div>
+
+      <section id="quest-grid" class="quest-strip" aria-label="公開クエスト"></section>
+
+      <section class="draw-zone">
+        <div id="public-sets" class="public-sets" aria-label="公開セット"></div>
+        <div class="deck-panel">
+          <button id="deck-button" class="deck-control" aria-label="山札から引く">
+            <span class="deck-stack" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="deck-label">山札</span>
+            <span class="deck-count-line"><strong id="deck-count">0</strong><small>枚</small></span>
+          </button>
+          <button id="count-button" class="secondary count-near-deck">計数</button>
+        </div>
+      </section>
+
+      <section class="mana-hand-wrap">
+        <div id="mana-hand" class="mana-hand" aria-label="所持マナ"></div>
+      </section>
+
+      <div id="message" class="message" role="status"></div>
+      <div id="effect-layer" class="effect-layer" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <dialog id="draw-dialog" class="modal draw-dialog">
+    <form method="dialog">
+      <h2>山札から引く</h2>
+      <p>このターンに引く枚数を選びます。</p>
+      <div id="draw-buttons" class="draw-buttons"></div>
+      <button class="secondary wide" value="cancel">戻る</button>
+    </form>
+  </dialog>
+
+  <dialog id="rule-dialog" class="modal rule-dialog">
+    <form method="dialog">
+      <button class="dialog-close" value="cancel" aria-label="閉じる">×</button>
+      <h2>遊び方</h2>
+      <div class="rule-body">
+        <section class="manual-section">
+          <h3>ゲームの目的</h3>
+          <p>『The Blast Alchemist』は、<strong>マナを集めてクエストを達成し、できるだけ高いスコアを目指す</strong>一人用ボードゲームです。</p>
+          <p>画面上部に並んでいるのが、現在受けている<strong>クエスト</strong>です。それぞれのクエストには「必要なマナ」と「残りターン」が決められています。</p>
+          <p>マナを集め、期限までに必要な組み合わせをそろえて<strong>納品</strong>しましょう。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>1ターンにできること</h3>
+          <p>1ターンでは、次のどれか<strong>1つ</strong>を行います。</p>
+          <ul>
+            <li><strong>山札から1～3枚引く</strong></li>
+            <li><strong>公開セットを1組取る</strong></li>
+            <li><strong>クエストへ納品する</strong></li>
+          </ul>
+          <p>どれを行っても1ターン進み、クエストの残りターンも減っていきます。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>山札からマナを引く</h3>
+          <p>画面中央右側にある<strong>山札</strong>をタップします。</p>
+          <p>すると、何枚引くかを選べます。<strong>1枚・2枚・3枚</strong>の中から好きな枚数を選んでください。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>公開セットを取る</h3>
+          <p>山札の左側には、<strong>2組の公開セット</strong>があります。</p>
+          <p>公開セットをタップすると、そこに見えている<strong>2枚のマナをまとめて入手</strong>します。</p>
+          <p>山札と違い、何が手に入るのかを見てから選べます。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>所持マナの見方</h3>
+          <p>集めたマナは、画面下部に属性ごとに並びます。</p>
+          <p>マナには<strong>火・水・風・光の4属性</strong>があり、<strong>上級では土を含む5属性</strong>になります。カードに書かれた数字が、そのカードのマナ量です。</p>
+          <div class="manual-example"><strong>例：</strong> 火3 + 火2 = 火マナ合計5</div>
+          <p>各列の左側には、その属性の<strong>現在の合計値</strong>が表示されています。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>クエストを達成する</h3>
+          <p>画面上部のクエストには、必要なマナが表示されています。</p>
+          <div class="manual-example"><strong>例：</strong> 火3 / 風2<br>火マナを3以上、風マナを2以上用意すると達成できます。</div>
+          <p>納品したいクエストをタップすると、そのクエストが光る枠で選択されます。</p>
+          <p>続いて、画面下部の<strong>納品に使うマナカードをタップ</strong>してください。</p>
+          <p>条件を満たす組み合わせを選ぶと、クエストの下に<strong>「納品」ボタン</strong>が表示されます。最後に「納品」を押せば達成です。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>納品の制限</h3>
+          <p>マナカードに書かれた数字は、そのカード1枚分の値です。たとえば<strong>火3</strong>のカードを、「火1だけ使って、残り2を取っておく」という使い方はできません。</p>
+          <p>カードは必ず<strong>1枚単位</strong>で納品します。要求が火3のときに、火2 + 火2を選んで合計4として納品することはできます。</p>
+          <p>ただし、すでに要求を満たしているのに、<strong>不要なカードを余分に追加して納品することはできません</strong>。</p>
+          <div class="manual-example"><strong>要求が火3の場合</strong><br>火2 + 火2 → 納品できます<br>火3 + 火1 → 火1がなくても要求を満たせるため、納品できません</div>
+          <p>余分なカードが選ばれている場合は、そのカードが画面上で示されます。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>PERFECT</h3>
+          <p>要求されたマナ量と<strong>ぴったり同じ量</strong>で納品すると、<strong>PERFECT!</strong> になります。</p>
+          <p>PERFECTでは通常の得点に加えて、<strong>1点ボーナス</strong>を獲得できます。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>「？」の要求</h3>
+          <p>クエストには、ときどき<strong>？3</strong>のような要求が登場します。</p>
+          <p>「？」には、表示されている他の要求とは異なる<strong>通常属性</strong>を割り当てられます。</p>
+          <div class="manual-example"><strong>例：</strong> 火3 / ？3<br>「？」には水・風・光などを使えます。火はすでに別の要求で使われているため、「？」の属性として重ねて使うことはできません。</div>
+          <p>また、<strong>「？」1つにつき、同じ属性のマナで満たす必要があります</strong>。たとえば「？4」を、火2 + 水2のように複数属性を混ぜて満たすことはできません。</p>
+          <p>「？」が2つ以上ある場合は、それぞれ<strong>別の属性</strong>で満たします。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>万能マナ</h3>
+          <p>虹色のカードは<strong>万能マナ</strong>です。</p>
+          <p>万能マナは、クエストを納品するときに<strong>どの属性の代わりとしても使用できます</strong>。</p>
+          <p>万能マナは<strong>3点のカードしかありません</strong>。</p>
+          <p>あと少しだけ足りない要求を補うなど、通常のマナと組み合わせて使用できます。ただし、所持マナとしては万能マナも1つの独立したグループとして扱われます。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>BLAST</h3>
+          <p>同じ属性の所持マナ合計が<strong>8以上</strong>になると、その属性がBLASTします。</p>
+          <p>BLASTすると、<strong>その属性の所持マナをすべて失い、LIFEが1減ります</strong>。</p>
+          <div class="manual-example"><strong>例：</strong> 火マナを合計7持っている状態で火2を入手すると、合計9になるためBLASTします。</div>
+          <p>各属性の左側には、現在のマナ合計が表示されています。<strong>7/7</strong>になっている属性は、次にその属性を入手するとBLASTする可能性があります。</p>
+          <p>複数の属性が同時にBLASTした場合でも、その処理で失うLIFEは1です。</p>
+          <p>万能マナも独立した属性として扱われるため、万能マナの合計が8以上になった場合はBLASTします。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>クエストの期限</h3>
+          <p>クエストの下には、<strong>あと6ターン</strong>のように期限が表示されています。</p>
+          <p>山札から引く、公開セットを取る、納品する。どの行動をしても1ターン進みます。</p>
+          <p>期限がなくなるまでに納品できなければ、そのクエストは失敗します。期限が近いクエストは、赤い枠で強調されます。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>クエストの種類</h3>
+          <p>クエストには、<strong>通常・特別・災い</strong>の3種類があります。</p>
+          <p><strong>通常クエスト</strong>は、ゲーム中に最も多く登場します。達成すると左上に表示された得点を獲得し、失敗すると<strong>スコアが1減ります</strong>。</p>
+          <p><strong>特別クエスト</strong>は要求が難しい代わりに高得点です。失敗してもスコアは減りません。</p>
+          <p>黒いカードの<strong>災いクエスト</strong>は、達成すれば得点になりますが、失敗すると<strong>スコアが1減るほか、固有の効果が発生します</strong>。</p>
+          <p>災いの内容は、そのカードを選択すると画面中央に表示されます。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>「計数」で山札を確認する</h3>
+          <p>山札の下にある<strong>「計数」</strong>を押すと、山札に残っているマナを確認できます。</p>
+          <p>「火1があと何枚あるか」などを、属性・数字ごとに確認できます。</p>
+        </section>
+
+        <section class="manual-section">
+          <h3>ゲーム終了</h3>
+          <p><strong>LIFEが0になる</strong>か、山札を使い切ってゲームを続けられなくなるとゲーム終了です。</p>
+          <p>自己ベストはブラウザに保存されます。まずはゲームの流れに慣れながら、少しずつ自己ベストを伸ばしてみてください。</p>
+        </section>
+      </div>
+      <button class="primary wide" value="cancel">閉じる</button>
+    </form>
+  </dialog>
+
+  <dialog id="count-dialog" class="modal count-dialog">
+    <form method="dialog">
+      <h2>山札計数</h2>
+      <div id="count-body" class="count-body"></div>
+      <button class="primary wide" value="cancel">閉じる</button>
+    </form>
+  </dialog>
+
+  <dialog id="result-dialog" class="modal result-dialog">
+    <form method="dialog">
+      <h2 id="result-rating">RESULT</h2>
+      <div id="result-body" class="result-body"></div>
+      <div class="result-actions">
+        <button id="retry-button" type="button" class="primary">もう一度</button>
+        <button id="menu-button" type="button" class="secondary">メニューへ</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- app.bundle.js の旧チュートリアル参照互換用。Web版のメニューからは利用しません。 -->
+  <dialog id="tutorial-dialog" class="modal tutorial-dialog" hidden aria-hidden="true">
+    <form method="dialog">
+      <h2 id="tutorial-title">チュートリアル</h2>
+      <p id="tutorial-text"></p>
+      <button id="tutorial-next" type="button" class="primary wide">OK</button>
+    </form>
+  </dialog>
+
+  <script src="js/app.bundle.js"></script>
+  <script src="js/mana-assets.js"></script>
+</body>
+</html>
